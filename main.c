@@ -11,6 +11,79 @@ struct Permission {
 	int read;
 	int write;
 };
+void saveData(int user_count, struct User users[], int file_count, char files[][20], struct Permission permissions[5][5]) {
+
+	FILE* fp = fopen("access_data.txt", "w");
+
+	if (fp == NULL) {
+		printf("파일 저장에 실패했습니다.\n");
+		return;
+	}
+	fprintf(fp, "%d %d\n", user_count, file_count);
+
+	for (int i = 0; i < user_count; i++) {
+		fprintf(fp, "%s\n", users[i].name);
+	}
+	for (int i = 0; i < file_count; i++) {
+		fprintf(fp, "%s\n", files[i]);
+	}
+	for (int i = 0; i < user_count; i++) {
+		for (int j = 0; j < file_count; j++) {
+			fprintf(fp, "%d %d\n", permissions[i][j].read, permissions[i][j].write);
+		}
+	}
+	fclose(fp);
+	printf("데이터가 저장되었습니다.\n");
+}
+
+void loadData(int* user_count, struct User users[], int* file_count, char files[][20], struct Permission permissions[5][5]) {
+	FILE* fp = fopen("access_data.txt", "r");
+
+	if (fp == NULL) {
+		printf("저장된 데이터가 없습니다.\n");
+		return;
+	}
+
+	if (fscanf_s(fp, "%d %d", user_count, file_count) != 2 
+		|| *user_count < 0 || *user_count>5 || *file_count < 0 || *file_count>5) {
+		printf("저장된 데이터가 올바르지 않습니다. \n");
+		fclose(fp);
+		*user_count = 0;
+		*file_count = 0;
+		return;
+	}
+	for (int i = 0; i < *user_count; i++) {
+		if (fscanf_s(fp, "%19s", users[i].name, 20) != 1) {
+			printf("사용자 데이터 읽기에 실패했습니다. \n");
+			fclose(fp);
+			*user_count = 0;
+			*file_count = 0;
+			return;
+		}
+	}
+	for (int i = 0; i < *file_count; i++) {
+		if (fscanf_s(fp, "%19s", files[i], 20) != 1) {
+			printf("파일 데이터 읽기에 실패했습니다. \n");
+			fclose(fp);
+			*user_count = 0;
+			*file_count = 0;
+			return;
+		}
+	}
+	for (int i = 0; i < *user_count; i++) {
+		for (int j = 0; j < *file_count; j++) {
+			if (fscanf_s(fp, "%d %d", &permissions[i][j].read, &permissions[i][j].write) != 2) {
+				printf("권한 데이터 읽기에 실패했습니다. \n");
+				fclose(fp);
+				*user_count = 0;
+				*file_count = 0;
+				return;
+			}
+		}
+	}
+	fclose(fp);
+	printf("데이터를 불러왔습니다. \n");
+}
 
 int main(void) {
 	
@@ -24,6 +97,7 @@ int main(void) {
 	int user_count = 0;
 	struct User users[5];
 	struct Permission permissions[5][5] = { 0 };
+	loadData(&user_count, users, &file_count, files, permissions);
 
 	while (1) {
 		printf("----USER ACCESS CONTROL----\n"); //초기 화면
@@ -34,6 +108,8 @@ int main(void) {
 		printf("5. 파일 권한 설정\n");
 		printf("6. 파일 권한 확인\n");
 		printf("7. 종료\n");
+		printf("8. 파일 데이터 초기화\n");
+		printf("9. 사용자 데이터 초기화\n");
 
 		scanf_s("%d", &choice);
 		if (choice == 1) {
@@ -233,8 +309,56 @@ int main(void) {
 			}
 		}
 		else if (choice == 7) {
+			saveData(user_count, users, file_count, files, permissions);
 			printf("프로그램을 종료합니다.\n");
 			break;
+		}
+		else if (choice == 8) {
+			file_count = 0;
+
+			int confirm;
+			printf("파일 데이터를 초기화 하시겠습니까? (1: 확인, 0: 취소): ");
+			scanf_s("%d", &confirm);
+
+			if (confirm != 1) {
+				printf("초기화가 취소되었습니다. \n");
+			}
+
+			for (int i = 0; i < 5; i++) {
+				files[i][0] = '\0';
+
+				for (int j = 0; j < 5; j++) { //모든 사용자의 파일 권한 초기화
+					permissions[j][i].read = 0;
+					permissions[j][i].write = 0;
+				}
+			}
+			saveData(user_count, users, file_count, files, permissions);
+			printf("파일 데이터가 초기화 되었습니다. \n");
+		}
+		else if (choice == 9) {
+			user_count = 0;
+			file_count = 0;
+
+			int confirm;
+			printf("사용자 및 전체 데이터를 초기화 하시겠습니까? (1: 확인, 0: 취소): ");
+			scanf_s("%d", &confirm);
+
+			if (confirm != 1) {
+				printf("초기화가 취소되었습니다. \n");
+				continue;
+			}
+
+			for (int i = 0; i < 5; i++) {
+				users[i].name[0] = '\0';
+				files[i][0] = '\0';
+
+				for (int j = 0; j < 5; j++) {
+					permissions[i][j].read = 0;
+					permissions[i][j].write = 0;
+				}
+			}
+			saveData(user_count, users, file_count, files, permissions);
+			printf("사용자 및 전체 접근 권한이 초기화 되었습니다. \n");
 		}
 		else {
 			printf("잘못된 선택입니다.\n");
