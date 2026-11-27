@@ -32,7 +32,7 @@ int main(void) {
 		printf("3. 파일 등록\n");
 		printf("4. 파일 목록\n")	;
 		printf("5. 파일 권한 설정\n");
-		printf("6. 파일 접근 요청\n");
+		printf("6. 파일 권한 확인\n");
 		printf("7. 종료\n");
 
 		scanf_s("%d", &choice);
@@ -123,6 +123,68 @@ int main(void) {
 		else if (choice == 5) {
 			int user_num, file_num;
 			int permission_choice;
+			int permission_value;
+
+			if (user_count == 0 || file_count == 0) {
+				printf("등록된 사용자와 파일이 모두 필요합니다.\n");
+				continue;
+			}
+			printf("등록된 사용자 목록: \n"); //등록된 사용자 목록 확인
+			for (int i = 0; i < user_count; i++) {
+				printf("%d. %s\n", i + 1, users[i].name);
+			}
+			printf("권한을 부여할 사용자 번호: ");
+			scanf_s("%d", &user_num);
+
+			if (user_num <1 || user_num>user_count) { //사용자 번호 유효성 확인
+				printf("잘못된 사용자 번호입니다.\n");
+				continue;
+			}
+			printf("\n등록된 파일 목록: \n"); //등록된 파일 목록 확인
+			for (int i = 0; i < file_count; i++) {
+				printf("%d. %s\n", i + 1, files[i]);
+			}
+			printf("권한을 설정할 파일 번호: \n");
+			scanf_s("%d", &file_num);
+
+			if (file_num<1 || file_num>file_count) {
+				printf("잘못된 파일 번호입니다. \n");
+				continue;
+			}
+			printf("\n1. 읽기 권한\n");
+			printf("2. 쓰기 권한\n");
+			printf("선택: ");
+			scanf_s("%d", &permission_choice);
+
+			if (permission_choice != 1 && permission_choice != 2) {
+				printf("잘못된 선택입니다.\n");
+				continue;
+			}
+
+			printf("권한을 허용할까요? (1:허용, 0:거부): ");
+			scanf_s("%d", &permission_value);
+
+			if (permission_value != 0 && permission_value != 1) {
+				printf("잘못된 권한 값입니다.\n");
+				continue;
+			}
+
+			if (permission_choice == 1) { //읽기 권한 설정
+				permissions[user_num - 1][file_num - 1].read = permission_value;
+			}
+			else { //쓰기 권한 설정
+				permissions[user_num - 1][file_num - 1].write = permission_value;
+			}
+			if (permission_value == 1) {
+				printf("권한이 부여되었습니다. \n");
+			}
+			else {
+				printf("권한 부여가 거부되었습니다. \n");
+			}
+		}
+		else if (choice==6) {
+			int user_num, file_num;
+			int access_choice;
 
 			if (user_count == 0 || file_count == 0) {
 				printf("등록된 사용자와 파일이 모두 필요합니다.\n");
@@ -132,34 +194,43 @@ int main(void) {
 			for (int i = 0; i < user_count; i++) {
 				printf("%d. %s\n", i + 1, users[i].name);
 			}
-			printf("권한을 설정할 사용자 번호: ");
+			printf("권한을 확인할 사용자 번호: ");
 			scanf_s("%d", &user_num);
 
-			if (user_num <1 || user_num>user_count) {
+			if (user_num<1 || user_num>user_count) { //사용자 번호 유효성 확인 
 				printf("잘못된 사용자 번호입니다.\n");
 				continue;
 			}
-			printf("1. 읽기 권한\n");
-			printf("2. 쓰기 권한\n");
-			printf("선택: ");
-			scanf_s("%d", &permission_choice);
+			printf("\n선택한 사용자: %s\n", users[user_num-1].name);
+			
+			printf("\n권한을 확인할 파일 목록: \n"); //등록된 파일 목록 확인
+			for (int i = 0; i < file_count; i++) {
+				printf("%d. %s\n", i + 1, files[i]);
+			}
 
-			if (permission_choice == 1) {
-				printf("읽기 권한을 허용할까요? (1: 허용, 0: 거부): ");
-				scanf_s("%d", &permissions[user_num - 1][user_num - 1].read);
-			}
-			else if (permission_choice == 2) {
-				printf("쓰기 권한을 허용할까요? (1: 허용, 0: 거부): ");
-				scanf_s("%d", &permissions[user_num - 1][user_num - 1].write);
-			}
-			else {
-				printf("잘못된 선택입니다.\n");
+			printf("권한을 확인할 파일 번호: ");
+			scanf_s("%d", &file_num);
+
+			if (file_num<1 || file_num>file_count) { //파일 번호 유효성 확인
+				printf("잘못된 파일 번호입니다.\n");
 				continue;
 			}
-			printf("권한이 설정되었습니다.\n");
-		}
-		else if (choice==6) {
-			printf("파일 접근 요청을 선택했습니다.\n");
+
+			printf("\n선택한 파일: %s\n", files[file_num-1]);
+			printf("----FILE PERMISSION----\n");
+
+			if (permissions[user_num - 1][file_num - 1].read == 1) {
+				printf("읽기 권한 : 허용\n");
+			}
+			else {
+				printf("파일 권한 : 거부\n");
+			}
+			if (permissions[user_num - 1][file_num - 1].write == 1) {
+				printf("쓰기 권한 : 허용\n");
+			}
+			else {
+				printf("쓰기 권한 : 거부\n");
+			}
 		}
 		else if (choice == 7) {
 			printf("프로그램을 종료합니다.\n");
